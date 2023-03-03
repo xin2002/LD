@@ -14,6 +14,7 @@ from .ga_rpn_head import GARPNHead
 from .gfl_head import GFLHead
 from .guided_anchor_head import FeatureAdaption, GuidedAnchorHead
 from .ld_head import LDHead
+from .multi_ld_head import MultiLDHead
 from .nasfcos_head import NASFCOSHead
 from .paa_head import PAAHead
 from .pisa_retinanet_head import PISARetinaHead
@@ -34,7 +35,6 @@ from .ld_retina import LDRetinaHead
 from .ld_fcos_head import LDFCOSHead
 from .ld_atss import LDATSSHead
 from .atss_gfl_head import ATSSGFLHead
-from .ld_gflv2 import LDv2Head
 
 __all__ = [
     'AnchorFreeHead', 'AnchorHead', 'GuidedAnchorHead', 'FeatureAdaption',
@@ -45,5 +45,5 @@ __all__ = [
     'YOLACTSegmHead', 'YOLACTProtonet', 'YOLOV3Head', 'PAAHead',
     'SABLRetinaHead', 'CentripetalHead', 'VFNetHead', 'TransformerHead',
     'StageCascadeRPNHead', 'CascadeRPNHead', 'EmbeddingRPNHead', 'LDHead',
-    'GFocalHead', 'IMv2Head'
+    'GFocalHead', 'IMv2Head', 'MultiLDHead'
 ]

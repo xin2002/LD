@@ -217,7 +217,12 @@ class LDHead(GFLHead):
             target_corners = bbox2distance(pos_anchor_centers,
                                            pos_decode_bbox_targets,
                                            self.reg_max).reshape(-1)
-
+            
+            sft_cnr_itg=self.integral(soft_corners)
+            #print(sft_cnr_itg.reshape(-1,2,2).flip(dims=[1]).shape)
+            #print(sft_cnr_itg.shape)
+            
+            length_box=torch.abs(sft_cnr_itg.reshape(-1,2,2).flip(dims=[1]).reshape(-1)-sft_cnr_itg.reshape(-1))
             # regression loss
             loss_bbox = self.loss_bbox(
                 pos_decode_bbox_pred,
@@ -230,12 +235,17 @@ class LDHead(GFLHead):
                 target_corners,
                 weight=weight_targets[:, None].expand(-1, 4).reshape(-1),
                 avg_factor=4.0)
-
+            ld_weight_per=weight_targets[:, None].expand(-1, 4).clone().reshape(-1)
+            mini_ant=1e-6
+            if (0):
+                #print(length_box)
+                ld_weight_per*=1/(length_box+mini_ant)
+                ld_weight_per*=1/((1/(length_box+mini_ant)).mean())
             # ld loss
             loss_ld = self.loss_ld(
                 pred_corners,
                 soft_corners,
-                weight=weight_targets[:, None].expand(-1, 4).reshape(-1),
+                weight=ld_weight_per,
                 avg_factor=4.0)
             loss_kd = self.loss_kd(
                 cls_score[pos_inds],

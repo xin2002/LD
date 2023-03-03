@@ -36,18 +36,19 @@ model = dict(
             loss_weight=1.0),
         loss_dfl=dict(type='DistributionFocalLoss', loss_weight=0.25),
         loss_ld=dict(
-            type='KnowledgeDistillationKLDivLoss', loss_weight=0.25, T=10),
+            type='KnowledgeDistillationKLDivLoss', loss_weight=0.25*2, T=10),
         loss_ld_vlr=dict(
-            type='KnowledgeDistillationKLDivLoss', loss_weight=0.25, T=10),
+            type='KnowledgeDistillationKLDivLoss', loss_weight=0*0.25, T=10),
         loss_kd=dict(
-            type='KnowledgeDistillationKLDivLoss', loss_weight=10, T=2),
-        loss_im=dict(type='IMLoss', loss_weight=2.0),
+            type='KnowledgeDistillationKLDivLoss', loss_weight=0*10, T=2),
+        loss_im=dict(type='IMLoss', loss_weight=2.0*0),
         reg_max=16,
         loss_bbox=dict(type='GIoULoss', loss_weight=2.0),
         imitation_method='finegrained'  # gibox, finegrain, decouple, fitnet
     ))
 data = dict(
-    samples_per_gpu=2,
+    samples_per_gpu=3,
     workers_per_gpu=2,
 )
-optimizer = dict(type='SGD', lr=0.0025, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.0075, momentum=0.9, weight_decay=0.0001)
+optimizer_config=dict(_delete_=True, grad_clip=dict(max_norm=35, norm_type=2))

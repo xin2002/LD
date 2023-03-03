@@ -12,6 +12,7 @@ from .gfl import GFL
 from .grid_rcnn import GridRCNN
 from .htc import HybridTaskCascade
 from .kd_one_stage import KnowledgeDistillationSingleStageDetector
+from .multi_kd import MultiTeacherKnowledgeDistillationSingleStageDetector
 from .kd_two_stage import KnowledgeDistillationTwoStageDetector
 from .mask_rcnn import MaskRCNN
 from .mask_scoring_rcnn import MaskScoringRCNN
@@ -37,5 +38,5 @@ __all__ = [
     'RetinaNet', 'FCOS', 'GridRCNN', 'MaskScoringRCNN', 'RepPointsDetector',
     'FOVEA', 'FSAF', 'NASFCOS', 'PointRend', 'GFL', 'CornerNet', 'PAA',
     'YOLOV3', 'YOLACT', 'VFNet', 'DETR', 'TridentFasterRCNN', 'SparseRCNN',
-    'SCNet'
+    'SCNet', 'MultiTeacherKnowledgeDistillationSingleStageDetector'
 ]

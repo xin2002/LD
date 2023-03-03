@@ -147,8 +147,8 @@ def multiclass_nms(multi_bboxes,
 
     if nms_cfg['type']=='voting_cluster_diounms':    # Score-voting Cluster-DIoU-NMS
         scores, idx = scores.sort(0, descending=True)
-        bboxes = bboxes[idx]
-        labels = labels[idx]
+        bboxes = bboxes[idx].cuda()
+        labels = labels[idx].cuda()
         box = bboxes + labels.unsqueeze(1).expand_as(bboxes)*4000
 
         iouu = diou(box, box, 0.8)
