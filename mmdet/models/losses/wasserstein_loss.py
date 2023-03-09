@@ -137,5 +137,5 @@ class SinkhornDistance(nn.Module):
                                reduction=reduction,
                                avg_factor=avg_factor,
                                max_iter=self.max_iter,
-                               eps=self.eps,)*grad_coef 
+                               eps=self.eps,)*grad_coef*self.loss_weight
 
