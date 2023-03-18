@@ -10,8 +10,9 @@ from .utils import weighted_loss
 def wasserstein_dis(pred,
                     soft_label,
                     max_iter,
-                    eps):
-    C = _cost_matrix(pred, soft_label)  # Wasserstein cost function
+                    eps,
+                    p=2):
+    C = _cost_matrix(pred, soft_label,p)  # Wasserstein cost function
     x_points = pred.shape[-2]
     y_points = soft_label.shape[-2]
     if pred.dim() == 2:
@@ -96,7 +97,7 @@ class SinkhornDistance(nn.Module):
         - Input: :math:`(N, P_1, D_1)`, :math:`(N, P_2, D_2)`
         - Output: :math:`(N)` or :math:`()`, depending on `reduction`
     """
-    def __init__(self, eps=0.1, max_iter=30, reduction='mean', loss_weight=1.0,T=10,Tmode=0):
+    def __init__(self, eps=0.1, max_iter=30, reduction='mean', loss_weight=1.0,T=10,Tmode=0,p=2):
         super(SinkhornDistance, self).__init__()
         self.eps = eps
         self.max_iter = max_iter
@@ -104,6 +105,7 @@ class SinkhornDistance(nn.Module):
         self.loss_weight=loss_weight
         self.T=T
         self.Tmode=Tmode
+        self.p=p
 
     def forward(self, x1, y1,weight=None, avg_factor=None,
                 reduction_override=None):
@@ -145,14 +147,15 @@ class SinkhornDistance(nn.Module):
                                reduction=reduction,
                                avg_factor=avg_factor,
                                max_iter=self.max_iter,
-                               eps=self.eps,)
+                               eps=self.eps,p=self.p)
         wdis_renorm=wasserstein_dis(rx,
                                ry,
                                weight=weight,
                                reduction=reduction,
                                avg_factor=avg_factor,
                                max_iter=self.max_iter,
-                               eps=self.eps,)
-        
-        return wdis*grad_coef*self.loss_weight*(wdis_renorm.norm(dim=1)/wdis.norm(dim=1))
+                               eps=self.eps,p=self.p)
+        wdis.backward()
+        wdis_renorm.backward()
+        return wdis*grad_coef*self.loss_weight*(rx.grad.norm(dim=-1)/ry.grad.norm(dim=-1))
 
