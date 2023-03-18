@@ -108,34 +108,51 @@ class SinkhornDistance(nn.Module):
     def forward(self, x1, y1,weight=None, avg_factor=None,
                 reduction_override=None):
         grad_coef=1
+        renorm_x=F.softmax(x1,dim=1)
+        renorm_y=F.softmax(y1,dim=1)
         if (self.Tmode==0):
             x1 = F.softmax(x1 / self.T,dim=1)
             y1 = F.softmax(y1 / self.T, dim=1)
-            grad_coef = self.T*self.T
+            #grad_coef = self.T*self.T
         elif (self.Tmode==1):
             x1 = F.softmax(x1 / self.T,dim=1)
             #y1 = F.softmax(y1 / self.T, dim=1)
-            grad_coef = self.T
+            #grad_coef = self.T
         elif (self.Tmode==2):
             #x1 = F.softmax(x1 / self.T,dim=1)
             y1 = F.softmax(y1 / self.T, dim=1)
-            grad_coef = self.T
+            #grad_coef = self.T
         x1 = torch.unsqueeze(x1,2).cuda()
         y1 = torch.unsqueeze(y1,2).cuda()
+        rx1 = torch.unsqueeze(renorm_x,2).cuda()
+        ry1 = torch.unsqueeze(renorm_y,2).cuda()
         x3 = (torch.unsqueeze(torch.arange(float(x1.size()[1])),1)* torch.ones(x1.size()[0], x1.size()[1], 1)).cuda()
         y3 = (torch.unsqueeze(torch.arange(float(y1.size()[1])),1)* torch.ones(y1.size()[0], y1.size()[1], 1)).cuda()
+        rx3 = (torch.unsqueeze(torch.arange(float(rx1.size()[1])),1)* torch.ones(rx1.size()[0], rx1.size()[1], 1)).cuda()
+        ry3 = (torch.unsqueeze(torch.arange(float(ry1.size()[1])),1)* torch.ones(ry1.size()[0], ry1.size()[1], 1)).cuda()
         x = torch.cat((x3, x1), dim=2).cuda()
         y = torch.cat((y3, y1), dim=2).cuda()
+        rx = torch.cat((rx3, rx1), dim=2).cuda()
+        ry = torch.cat((ry3, ry1), dim=2).cuda()
         #print(x)
         #print(y)
 
         reduction = (
             reduction_override if reduction_override else self.reduction)
-        return wasserstein_dis(x,
+        wdis=wasserstein_dis(x,
                                y,
                                weight=weight,
                                reduction=reduction,
                                avg_factor=avg_factor,
                                max_iter=self.max_iter,
-                               eps=self.eps,)*grad_coef*self.loss_weight
+                               eps=self.eps,)
+        wdis_renorm=wasserstein_dis(rx,
+                               ry,
+                               weight=weight,
+                               reduction=reduction,
+                               avg_factor=avg_factor,
+                               max_iter=self.max_iter,
+                               eps=self.eps,)
+        
+        return wdis*grad_coef*self.loss_weight*(wdis_renorm.norm(dim=1)/wdis.norm(dim=1))
 
