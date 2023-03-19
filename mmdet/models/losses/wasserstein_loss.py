@@ -97,7 +97,7 @@ class SinkhornDistance(nn.Module):
         - Input: :math:`(N, P_1, D_1)`, :math:`(N, P_2, D_2)`
         - Output: :math:`(N)` or :math:`()`, depending on `reduction`
     """
-    def __init__(self, eps=0.1, max_iter=30, reduction='mean', loss_weight=1.0,T=10,Tmode=0,p=2):
+    def __init__(self, eps=0.001, max_iter=80, reduction='mean', loss_weight=1.0,T=10,Tmode=0,p=2):
         super(SinkhornDistance, self).__init__()
         self.eps = eps
         self.max_iter = max_iter
@@ -110,12 +110,11 @@ class SinkhornDistance(nn.Module):
     def forward(self, x1, y1,weight=None, avg_factor=None,
                 reduction_override=None):
         grad_coef=1
-        renorm_x=F.softmax(x1,dim=1)
-        renorm_y=F.softmax(y1,dim=1)
+
         if (self.Tmode==0):
             x1 = F.softmax(x1 / self.T,dim=1)
             y1 = F.softmax(y1 / self.T, dim=1)
-            #grad_coef = self.T*self.T
+            grad_coef = self.T**(p-1)
         elif (self.Tmode==1):
             x1 = F.softmax(x1 / self.T,dim=1)
             #y1 = F.softmax(y1 / self.T, dim=1)
@@ -126,16 +125,13 @@ class SinkhornDistance(nn.Module):
             #grad_coef = self.T
         x1 = torch.unsqueeze(x1,2).cuda()
         y1 = torch.unsqueeze(y1,2).cuda()
-        rx1 = torch.unsqueeze(renorm_x,2).cuda()
-        ry1 = torch.unsqueeze(renorm_y,2).cuda()
+
         x3 = (torch.unsqueeze(torch.arange(float(x1.size()[1])),1)* torch.ones(x1.size()[0], x1.size()[1], 1)).cuda()
         y3 = (torch.unsqueeze(torch.arange(float(y1.size()[1])),1)* torch.ones(y1.size()[0], y1.size()[1], 1)).cuda()
-        rx3 = (torch.unsqueeze(torch.arange(float(rx1.size()[1])),1)* torch.ones(rx1.size()[0], rx1.size()[1], 1)).cuda()
-        ry3 = (torch.unsqueeze(torch.arange(float(ry1.size()[1])),1)* torch.ones(ry1.size()[0], ry1.size()[1], 1)).cuda()
+
         x = torch.cat((x3, x1), dim=2).cuda()
         y = torch.cat((y3, y1), dim=2).cuda()
-        rx = torch.cat((rx3, rx1), dim=2).cuda()
-        ry = torch.cat((ry3, ry1), dim=2).cuda()
+
         #print(x)
         #print(y)
 
@@ -148,14 +144,7 @@ class SinkhornDistance(nn.Module):
                                avg_factor=avg_factor,
                                max_iter=self.max_iter,
                                eps=self.eps,p=self.p)
-        wdis_renorm=wasserstein_dis(rx,
-                               ry,
-                               weight=weight,
-                               reduction=reduction,
-                               avg_factor=avg_factor,
-                               max_iter=self.max_iter,
-                               eps=self.eps,p=self.p)
-        wdis.backward()
-        wdis_renorm.backward()
-        return wdis*grad_coef*self.loss_weight*(rx.grad.norm(dim=-1)/ry.grad.norm(dim=-1))
+
+
+        return wdis*grad_coef*self.loss_weight
 
